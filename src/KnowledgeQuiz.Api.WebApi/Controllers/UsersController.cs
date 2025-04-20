@@ -41,7 +41,6 @@ public class UsersController : ControllerBase
             
             return Unauthorized(ApiResponse<string>.Fail(message));
         }
-            
         
         return Ok(ApiResponse<string>.SuccessResponse(result.Token!, "Login successful"));
     }

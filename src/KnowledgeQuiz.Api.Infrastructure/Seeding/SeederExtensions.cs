@@ -1,4 +1,5 @@
 ﻿using KnowledgeQuiz.Api.Infrastructure.Data;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -17,7 +18,8 @@ public static class SeederExtensions
         using var scope = app.Services.CreateScope();
         var services = scope.ServiceProvider;
         var db = services.GetRequiredService<AppDbContext>();
+        var config = services.GetRequiredService<IConfiguration>();
         await RoleSeeder.EnsureSystemRolesExistAsync(db);
-        await UserSeeder.EnsureAdminUserExistsAsync(db);
+        await UserSeeder.EnsureAdminUserExistsAsync(db, config);
     }
 }

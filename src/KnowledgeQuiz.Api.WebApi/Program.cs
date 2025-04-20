@@ -14,7 +14,8 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    Console.WriteLine("ta em dev");
+    Console.WriteLine("Running in Development Environment");
+    await app.SeedAsync();
     app.MapOpenApi();
 }
 
@@ -23,7 +24,5 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-
-await app.SeedAsync();
 
 app.Run();

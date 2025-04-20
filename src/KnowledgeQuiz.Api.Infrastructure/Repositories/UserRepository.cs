@@ -124,8 +124,7 @@ public class UserRepository : IUserRepository
                 Email = user.Email,
                 DateOfBirth = user.DateOfBirth,
                 IsAnonymous = user.IsAnonymous,
-                Password = user.Password,
-                Role = user.Role == null ? string.Empty : user.Role.Name
+                Role = user.Role!.Name
             });
         }
 
