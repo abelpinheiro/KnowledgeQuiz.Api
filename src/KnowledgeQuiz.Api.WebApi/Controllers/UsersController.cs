@@ -8,69 +8,22 @@ using LoginRequest = KnowledgeQuiz.Api.Application.DTOs.LoginRequest;
 
 namespace KnowledgeQuiz.Api.WebApi.Controllers;
 
+/// <summary>
+/// Controller for handling all of user related logic
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 public class UsersController : ControllerBase
 {
-    private readonly IUserRepository _userRepository;
+    private readonly IUserRepository _repository;
 
-    public UsersController(IUserRepository userRepository)
+    public UsersController(IUserRepository repository)
     {
-        _userRepository = userRepository;
+        _repository = repository;
     }
     
     //TODO endpoints for changing the password, changing the email, integration with email, delete user, get endpoint with filters and pagination
-
-    #region General user endpoints
-    /// <summary>
-    /// Login in the system
-    /// </summary>
-    /// <param name="loginRequest"></param>
-    /// <returns></returns>
-    [HttpPost("login")]
-    public async Task<ActionResult<ApiResponse<string>>> Login(LoginRequest loginRequest)
-    {
-        var result = await _userRepository.LoginUserAsync(loginRequest);
-        if (!result.Success)
-        {
-            var message = result.Reason switch
-            {
-                LoginFailureReason.InvalidCredentials => "Email or password is incorrect",
-                _=> "Login failed"
-            };
-            
-            return Unauthorized(ApiResponse<string>.Fail(message));
-        }
-        
-        return Ok(ApiResponse<string>.SuccessResponse(result.Token!, "Login successful"));
-    }
     
-    /// <summary>
-    /// Creates an account with default role of player
-    /// </summary>
-    /// <param name="registerUserRequest"></param>
-    /// <returns></returns>
-    [HttpPost("register")]
-    public async Task<ActionResult<LoginResponse>> Register(RegisterUserRequest registerUserRequest)
-    {
-        var result = await _userRepository.RegisterUserAsync(registerUserRequest, "player");
-
-        if (!result.Success)
-        {
-            var message = result.FailureReason switch
-            {
-                RegisterFailureReason.UserAlreadyExists => "An account with this email already exists.",
-                _ => "Registration failed."
-            };
-            
-            return BadRequest(ApiResponse<string>.Fail(message));
-        }
-        
-        return Ok(ApiResponse<string>.SuccessResponse(null!, "Registration successful."));
-    }
-    #endregion
-
-    #region Admin level endpoints
     
     /// <summary>
     /// Retrieve all users
@@ -78,9 +31,9 @@ public class UsersController : ControllerBase
     /// <returns></returns>
     [Authorize(Roles = "admin")]
     [HttpGet]
-    public async Task<ActionResult<ApiResponse<string>>> GetUsers()
+    public async Task<ActionResult<ApiResponse<string>>> GetUsersAsync()
     {
-        var result = await _userRepository.GetUsersAsync();
+        var result = await _repository.GetUsersAsync();
         
         return Ok(ApiResponse<List<UserResponse>>.SuccessResponse(result, "Users successfully retrieved."));
     }
@@ -91,10 +44,10 @@ public class UsersController : ControllerBase
     /// <param name="request"></param>
     /// <returns></returns>
     [Authorize(Roles = "admin")]
-    [HttpPost("with-role")]
-    public async Task<ActionResult<ApiResponse<string>>> RegisterUserWithRole(RegisterUserWithRoleRequest request)
+    [HttpPost]
+    public async Task<ActionResult<ApiResponse<string>>> CreateUserWithRoleAsync(RegisterUserWithRoleRequest request)
     {
-        var result = await _userRepository.RegisterUserAsync(request, request.Role);
+        var result = await _repository.RegisterUserAsync(request, request.Role);
 
         if (!result.Success)
         {
@@ -110,7 +63,7 @@ public class UsersController : ControllerBase
         
         return Ok(ApiResponse<string>.SuccessResponse(null!, "Registration successful."));
     }
-
+    
     /// <summary>
     /// Assign a role to an existing user
     /// </summary>
@@ -121,7 +74,7 @@ public class UsersController : ControllerBase
     [HttpPut("{userId}/role")]
     public async Task<ActionResult<ApiResponse<string>>> AssignRoleToUser(int userId, AssignRoleRequest assignRoleRequest)
     {
-        var result = await _userRepository.AssignRoleToUserAsync(userId, assignRoleRequest);
+        var result = await _repository.AssignRoleToUserAsync(userId, assignRoleRequest);
 
         if (!result.Success)
         {
@@ -136,5 +89,4 @@ public class UsersController : ControllerBase
         
         return Ok(ApiResponse<string>.SuccessResponse(null!, "Role update successful    ."));
     }
-    #endregion
 }
