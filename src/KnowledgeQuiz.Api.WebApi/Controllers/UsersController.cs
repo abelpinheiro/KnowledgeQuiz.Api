@@ -2,9 +2,7 @@
 using KnowledgeQuiz.Api.Application.DTOs;
 using KnowledgeQuiz.Api.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
-using LoginRequest = KnowledgeQuiz.Api.Application.DTOs.LoginRequest;
 
 namespace KnowledgeQuiz.Api.WebApi.Controllers;
 
@@ -23,7 +21,6 @@ public class UsersController : ControllerBase
     }
     
     //TODO endpoints for changing the password, changing the email, integration with email, delete user, get endpoint with filters and pagination
-    
     
     /// <summary>
     /// Retrieve all users

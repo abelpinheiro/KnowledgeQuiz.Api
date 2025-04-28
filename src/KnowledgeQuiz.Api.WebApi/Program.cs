@@ -1,5 +1,6 @@
 using KnowledgeQuiz.Api.Infrastructure.DependencyInjection;
 using KnowledgeQuiz.Api.Infrastructure.Seeding;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +18,7 @@ if (app.Environment.IsDevelopment())
     Console.WriteLine("Running in Development Environment");
     await app.SeedAsync();
     app.MapOpenApi();
+    app.MapScalarApiReference();
 }
 
 app.UseHttpsRedirection();
