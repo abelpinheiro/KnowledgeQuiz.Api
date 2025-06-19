@@ -8,7 +8,7 @@ public static class HealthChecksConfigurator
     public static IServiceCollection ConfigureHealthChecks(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddHealthChecks()
-            .AddSqlServer(configuration.GetConnectionString("Default"), name: "SQL Server");
+            .AddNpgSql(configuration.GetConnectionString("Default"), name: "SQL Server");
 
         services.AddHealthChecksUI(opt =>
         {
@@ -17,7 +17,7 @@ public static class HealthChecksConfigurator
             opt.SetApiMaxActiveRequests(1); // Api requests concurrency
             opt.AddHealthCheckEndpoint("KnowledgeQuiz API Health", "/api/health");
         })
-        .AddSqlServerStorage(configuration.GetConnectionString("Default"));
+        .AddPostgreSqlStorage(configuration.GetConnectionString("Default"));
         
         return services;
     }

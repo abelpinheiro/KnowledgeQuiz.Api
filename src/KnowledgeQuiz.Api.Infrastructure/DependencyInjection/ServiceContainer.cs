@@ -28,7 +28,7 @@ public static class ServiceContainer
     private static IServiceCollection AddDatabase(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlServer(configuration.GetConnectionString("Default"), 
+            options.UseNpgsql(configuration.GetConnectionString("Default"), 
                 b => b.MigrationsAssembly(typeof(ServiceContainer).Assembly.FullName)));
         
         return services;
