@@ -1,6 +1,8 @@
 ﻿using System.Text;
 using KnowledgeQuiz.Api.Application.Contracts;
 using KnowledgeQuiz.Api.Infrastructure.Data;
+using KnowledgeQuiz.Api.Infrastructure.Observability;
+using KnowledgeQuiz.Api.Infrastructure.Observability.HealthChecks;
 using KnowledgeQuiz.Api.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -14,10 +16,33 @@ public static class ServiceContainer
 {
     public static IServiceCollection InfrastructureServices(this IServiceCollection services, IConfiguration configuration)
     {
+        services
+            .AddJwtAuthentication(configuration)
+            .AddDatabase(configuration)
+            .AddObservability(configuration)
+            .AddRepositories();
+
+        return services;
+    }
+
+    private static IServiceCollection AddDatabase(this IServiceCollection services, IConfiguration configuration)
+    {
         services.AddDbContext<AppDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("Default"), 
                 b => b.MigrationsAssembly(typeof(ServiceContainer).Assembly.FullName)));
         
+        return services;
+    }
+
+    private static IServiceCollection AddRepositories(this IServiceCollection services)
+    {
+        services.AddScoped<IUserRepository, UserRepository>();
+        return services;
+    }
+
+
+    private static IServiceCollection AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration)
+    {
         services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -38,8 +63,7 @@ public static class ServiceContainer
         });
         
         services.AddAuthorization();
-
-        services.AddScoped<IUserRepository, UserRepository>();
+        
         return services;
     }
 }
