@@ -1,5 +1,6 @@
 using HealthChecks.UI.Configuration;
 using KnowledgeQuiz.Api.Infrastructure.DependencyInjection;
+using KnowledgeQuiz.Api.Infrastructure.Observability;
 using KnowledgeQuiz.Api.Infrastructure.Observability.Logging;
 using KnowledgeQuiz.Api.Infrastructure.Seeding;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -29,42 +30,12 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();
 
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-// Json Health endpoint
-app.MapHealthChecks("/api/health", new HealthCheckOptions()
-{
-    Predicate = _ => true,
-    ResponseWriter = async (context, report) =>
-    {
-        context.Response.ContentType = "application/json";
-        var result = System.Text.Json.JsonSerializer.Serialize(new
-        {
-            status = report.Status.ToString(),
-            checks = report.Entries.Select(e => new
-            {
-                name = e.Key,
-                status = e.Value.Status.ToString(),
-                description = e.Value.Description?.ToString(),
-                duration = e.Value.Duration.ToString(),
-                exception = e.Value.Exception?.Message
-            })
-        });
-        
-        await context.Response.WriteAsync(result);
-    }
-});
-
-app.MapHealthChecksUI(delegate(Options options)
-{
-    options.UIPath = "/health-ui";
-    options.ApiPath = "/health-ui-api";
-    //options.AddCustomStylesheet("./HealthCheck/Custom.css");
-});
 //app.MapPrometheusScrapingEndpoint();
 
+app.UseObservabilityEndpoints();
 app.Run();

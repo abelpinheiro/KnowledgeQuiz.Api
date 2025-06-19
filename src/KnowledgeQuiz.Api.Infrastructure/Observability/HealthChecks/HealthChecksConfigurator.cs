@@ -5,7 +5,7 @@ namespace KnowledgeQuiz.Api.Infrastructure.Observability.HealthChecks;
 
 public static class HealthChecksConfigurator
 {
-    public static IServiceCollection AddAppHealthChecks(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection ConfigureHealthChecks(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddHealthChecks()
             .AddSqlServer(configuration.GetConnectionString("Default"), name: "SQL Server");
