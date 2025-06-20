@@ -4,13 +4,15 @@ WORKDIR /App
 
 # Copy project files and restore as distinct layers 
 # This is improves build performance as restore will only be called if dependencies changed on the csproj. If not, use previous layer from cache.
-COPY *.sln ./
-COPY src/*/*.csproj ./src/
-COPY tests/*/*.csproj ./tests/
+COPY ./*.sln ./
+COPY src/**/*.csproj ./src/
+COPY tests/**/*.csproj ./tests/
 RUN dotnet restore KnowledgeQuiz.Api.sln
 
 # Copy the rest of the code
-COPY . ./
+#COPY . ./
+COPY src/ ./src/
+COPY tests/ ./tests/
 
 # Build and publish a release
 RUN dotnet publish KnowledgeQuiz.Api.WebApi/KnowledgeQuiz.Api.WebApi.csproj -c Release -o out
