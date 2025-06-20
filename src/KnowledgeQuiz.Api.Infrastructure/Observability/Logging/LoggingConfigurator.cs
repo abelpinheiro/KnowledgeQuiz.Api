@@ -27,16 +27,19 @@ public static class LoggingConfigurator
         }
         else
         {
-            loggerConfig
-                .WriteTo.File("logs/knowledgequiz-.log", rollingInterval: RollingInterval.Day)
-                .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri(elasticUri))
-                {
-                    AutoRegisterTemplate = true,
-                    IndexFormat = "random-{0:yyyy.MM.dd}",
-                    InlineFields = true,
-                    ModifyConnectionSettings = conn => conn.BasicAuthentication(username, password),
-                    MinimumLogEventLevel = LogEventLevel.Warning
-                });
+            if (!string.IsNullOrEmpty(elasticUri) && !string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
+            {
+                loggerConfig
+                    .WriteTo.File("logs/knowledgequiz-.log", rollingInterval: RollingInterval.Day)
+                    .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri(elasticUri))
+                    {
+                        AutoRegisterTemplate = true,
+                        IndexFormat = "random-{0:yyyy.MM.dd}",
+                        InlineFields = true,
+                        ModifyConnectionSettings = conn => conn.BasicAuthentication(username, password),
+                        MinimumLogEventLevel = LogEventLevel.Warning
+                    });
+            }
         }
         
         Log.Logger = loggerConfig.CreateLogger();
