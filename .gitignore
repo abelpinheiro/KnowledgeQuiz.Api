@@ -494,3 +494,9 @@ codealike.json
 
 # AppSettings.Development configuration
 appsettings.Development.json
+
+# log files
+*.log
+
+# environment secret file
+.env

@@ -1,0 +1,12 @@
+﻿global:
+  scrape_interval: 5s
+
+scrape_configs:
+  - job_name: 'knowledgequiz-api'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['host.docker.internal:5000'] # Ajuste a porta para a porta da sua API (Ex: 5000, 8080, etc)
+
+  - job_name: 'jaeger'
+    static_configs:
+      - targets: ['jaeger:16686']

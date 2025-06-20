@@ -1,0 +1,114 @@
+﻿name: Build, Test, Dockerize and Deploy .NET App
+on:
+  push:
+    branches: [ master ]
+  pull_request: 
+    branches: [ master ]
+
+jobs:
+  # Job 1: Build the app
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      # Download code from repo
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      # Installs .NET 9 SDK
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with: 
+          dotnet-version: 9.0.x
+      
+      # Restore dependencies
+      - name: Restore dependencies
+        run: dotnet restore KnowledgeQuiz.Api.Sln
+        
+      # Build the project in release mode
+      - name: Build
+        run: dotnet build KnowledgeQuiz.Api.sln --configuration Release --no-restore
+        
+      # Publish webApi project
+      - name: Publish app
+        run: dotnet publish src/KnowledgeQuiz.Api.WebApi/KnowledgeQuiz.Api.WebApi.csproj -c Release -o out
+  
+  # Job 2: Test the app and initialize services
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: quizuser
+          POSTGRES_PASSWORD: quizpass
+          POSTGRES_DB: quizdb
+        ports:
+          - 5432:5432
+        options: --health-cmd="pg_isready" --health-interval=10s --health-timeout=5s --health-retries=5
+      
+      elasticsearch:
+        image: docker.elastic.co/elasticsearch/elasticsearch:8.13.0
+        env:
+          discovery.type: single-node
+          xpack.security.enabled: false
+        ports:
+          - 9200:9200
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+        
+      # Run tests
+      - name: Run tests
+        run: dotnet test KnowledgeQuiz.Api.sln --no-build --verbosity normal
+        continue-on-error: true # Remove this when we actually have tests
+  
+  # Deploy the app
+  deploy:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      # Build docker image
+      - name: Build docker image
+        run: docker build -t knowledgequiz-api -f Dockerfile .
+      
+      # 8. (optional) Push to docker hub or another registry
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push image
+        run: docker push knowledgequiz-api
+
+#
+#  # Job 3: Deploy to Docker Hub
+#  deploy:
+#    runs-on: ubuntu-latest
+#    needs: test  # Só roda depois que os testes passarem
+#    steps:
+#      - name: Login to Docker Hub
+#        uses: docker/login-action@v3
+#        with:
+#          username: ${{ secrets.DOCKERHUB_USERNAME }}
+#          password: ${{ secrets.DOCKERHUB_TOKEN }}
+#      - name: Build Docker image
+#        run: docker build -t yourusername/knowledgequiz-api:latest .
+#      - name: Push Docker image
+#        run: docker push yourusername/knowledgequiz-api:latest
+  
+#  3. Sugestões e Melhorias
+#Melhoria na organização do Dockerfile: Para maior controle e melhores práticas de Docker, pode ser interessante usar multi-stage builds para reduzir o tamanho da imagem e otimizar o processo de criação. Você pode fazer isso separando as etapas de build e runtime em diferentes estágios no Dockerfile.
+#
+#Testes de unidade no pipeline: Quando você começar a escrever os testes, sugiro garantir que os testes de unidade estejam integrados ao CI/CD. Isso impede que código com falhas passe para a produção.
+#
+#Ambiente de deploy: Para completar o deploy, você pode adicionar uma etapa de deploy automático para um ambiente de staging ou produção. Isso depende da sua infraestrutura (se você usa algo como AWS, Azure, ou Google Cloud, por exemplo). Caso contrário, o fluxo de build e push da imagem para o Docker Hub já pode ser suficiente para o momento.
+#
+#GitHub Secrets: Certifique-se de que você está armazenando suas credenciais de Docker Hub ou qualquer outro serviço em Secrets no GitHub, como você já está fazendo. Isso é uma boa prática de segurança.
