@@ -1,8 +1,8 @@
 ﻿using System.Text;
 using KnowledgeQuiz.Api.Application.Contracts;
 using KnowledgeQuiz.Api.Infrastructure.Data;
+using KnowledgeQuiz.Api.Infrastructure.ExceptionHandlers;
 using KnowledgeQuiz.Api.Infrastructure.Observability;
-using KnowledgeQuiz.Api.Infrastructure.Observability.HealthChecks;
 using KnowledgeQuiz.Api.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -20,11 +20,23 @@ public static class ServiceContainer
             .AddJwtAuthentication(configuration)
             .AddDatabase(configuration)
             .AddObservability(configuration)
-            .AddRepositories();
+            .AddRepositories()
+            .AddExceptionHandlers();
 
         return services;
     }
 
+    private static IServiceCollection AddExceptionHandlers(this IServiceCollection services)
+    {
+        services.AddExceptionHandler<UnauthorizedExceptionHandler>();
+        services.AddExceptionHandler<BadRequestExceptionHandler>();
+        services.AddExceptionHandler<NotFoundExceptionHandler>();
+        services.AddExceptionHandler<GlobalExceptionHandler>();
+
+        services.AddProblemDetails();
+        return services;
+    }
+    
     private static IServiceCollection AddDatabase(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContext<AppDbContext>(options =>
