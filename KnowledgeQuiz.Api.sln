@@ -16,6 +16,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KnowledgeQuiz.Api.Applicati
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KnowledgeQuiz.Api.WebApi", "src\KnowledgeQuiz.Api.WebApi\KnowledgeQuiz.Api.WebApi.csproj", "{3D9C5C47-28E9-4A77-882F-7E41BF5FCA31}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{B22B3FC7-8A74-410B-B010-B0E679625FE8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KnowledgeQuiz.Api.UnitTests", "tests\KnowledgeQuiz.Api.UnitTests\KnowledgeQuiz.Api.UnitTests.csproj", "{94762C4A-260E-44AC-9EAB-BA56E2E4549E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KnowledgeQuiz.Api.IntegrationTests", "tests\KnowledgeQuiz.Api.IntegrationTests\KnowledgeQuiz.Api.IntegrationTests.csproj", "{1824CA9B-F72E-4317-B60E-3CA776EED262}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KnowledgeQuiz.Api.EndToEndTests", "tests\KnowledgeQuiz.Api.EndToEndTests\KnowledgeQuiz.Api.EndToEndTests.csproj", "{15FC3075-B404-4E64-9268-458365A21939}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -26,6 +34,9 @@ Global
 		{9F76B93C-3CC5-4BF4-8AA7-F50549A0C2EC} = {A10D3E9D-A847-4594-A1B7-B1196B4C6130}
 		{2DAA2F79-E67C-49AF-8180-A12A5C3C3820} = {5402579A-A37D-4A41-A509-8FD63A193EB2}
 		{3D9C5C47-28E9-4A77-882F-7E41BF5FCA31} = {253D06D5-5F63-443B-B935-011BFEF92C65}
+		{94762C4A-260E-44AC-9EAB-BA56E2E4549E} = {B22B3FC7-8A74-410B-B010-B0E679625FE8}
+		{1824CA9B-F72E-4317-B60E-3CA776EED262} = {B22B3FC7-8A74-410B-B010-B0E679625FE8}
+		{15FC3075-B404-4E64-9268-458365A21939} = {B22B3FC7-8A74-410B-B010-B0E679625FE8}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{2B185458-ACCB-4183-9BE5-E39F9B3CC511}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -44,5 +55,17 @@ Global
 		{3D9C5C47-28E9-4A77-882F-7E41BF5FCA31}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3D9C5C47-28E9-4A77-882F-7E41BF5FCA31}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3D9C5C47-28E9-4A77-882F-7E41BF5FCA31}.Release|Any CPU.Build.0 = Release|Any CPU
+		{94762C4A-260E-44AC-9EAB-BA56E2E4549E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{94762C4A-260E-44AC-9EAB-BA56E2E4549E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{94762C4A-260E-44AC-9EAB-BA56E2E4549E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{94762C4A-260E-44AC-9EAB-BA56E2E4549E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1824CA9B-F72E-4317-B60E-3CA776EED262}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1824CA9B-F72E-4317-B60E-3CA776EED262}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1824CA9B-F72E-4317-B60E-3CA776EED262}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1824CA9B-F72E-4317-B60E-3CA776EED262}.Release|Any CPU.Build.0 = Release|Any CPU
+		{15FC3075-B404-4E64-9268-458365A21939}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{15FC3075-B404-4E64-9268-458365A21939}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{15FC3075-B404-4E64-9268-458365A21939}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{15FC3075-B404-4E64-9268-458365A21939}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
