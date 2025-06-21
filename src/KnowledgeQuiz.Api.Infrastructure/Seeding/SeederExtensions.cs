@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Serilog;
+using Microsoft.Extensions.Logging;
 
 namespace KnowledgeQuiz.Api.Infrastructure.Seeding;
 
@@ -24,17 +24,17 @@ public static class SeederExtensions
             var db = services.GetRequiredService<AppDbContext>();
             var config = services.GetRequiredService<IConfiguration>();
 
-            logger.Information("Starting role seeding...");
+            logger.LogInformation("Starting role seeding...");
             await RoleSeeder.EnsureSystemRolesExistAsync(db, logger);
 
-            logger.Information("Starting Admin User Seeding...");
+            logger.LogInformation("Starting Admin User Seeding...");
             await UserSeeder.EnsureAdminUserExistsAsync(db, config, logger);
 
-            logger.Information("Database seeding completed successfully.");
+            logger.LogInformation("Database seeding completed successfully");
         }
         catch (Exception ex)
         {
-            logger.Error(ex, "Error during database seeding.");
+            logger.LogError(ex, "Error during database seeding");
             throw;
         }
     }

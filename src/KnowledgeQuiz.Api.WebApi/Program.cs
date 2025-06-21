@@ -3,7 +3,6 @@ using KnowledgeQuiz.Api.Infrastructure.Observability;
 using KnowledgeQuiz.Api.Infrastructure.Observability.Logging;
 using KnowledgeQuiz.Api.Infrastructure.Seeding;
 using Scalar.AspNetCore;
-using ILogger = Serilog.ILogger;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,9 +19,9 @@ builder.Services.InfrastructureServices(builder.Configuration);
 var app = builder.Build();
 
 // Logger instance
-var logger = app.Services.GetRequiredService<ILogger>();
+var logger = app.Services.GetRequiredService<ILogger<Program>>();
 
-logger.Information("Application is starting...");
+logger.LogInformation("Application is starting...");
 
 app.UseExceptionHandler();
 await app.SeedAsync(logger);
@@ -30,7 +29,7 @@ await app.SeedAsync(logger);
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    logger.Information("Running in Development Environment");
+    logger.LogInformation("Running in Development Environment");
     app.MapOpenApi();
     app.MapScalarApiReference();
 }

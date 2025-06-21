@@ -1,7 +1,7 @@
 ﻿using KnowledgeQuiz.Api.Domain.Entities;
 using KnowledgeQuiz.Api.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using Serilog;
+using Microsoft.Extensions.Logging;
 
 namespace KnowledgeQuiz.Api.Infrastructure.Seeding;
 
@@ -31,7 +31,7 @@ public static class RoleSeeder
             var hasRole = await context.Roles.AnyAsync(x => x.Name.ToLower() == role.Name.ToLower());
             if (!hasRole)
             {
-                logger.Information("Creating role: {RoleName}", role.Name);
+                logger.LogInformation("Creating role: {RoleName}", role.Name);
                 await context.Roles.AddAsync(role);
             }
         }

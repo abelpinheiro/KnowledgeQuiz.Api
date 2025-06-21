@@ -3,7 +3,7 @@ using KnowledgeQuiz.Api.Domain.Enums;
 using KnowledgeQuiz.Api.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Serilog;
+using Microsoft.Extensions.Logging;
 
 namespace KnowledgeQuiz.Api.Infrastructure.Seeding;
 
@@ -17,7 +17,7 @@ public class UserSeeder
 
         if (string.IsNullOrEmpty(adminPassword) || string.IsNullOrEmpty(adminEmail) || string.IsNullOrEmpty(adminName))
         {
-            logger.Warning("Admin credentials not fully provided. Skipping admin user creation");
+            logger.LogWarning("Admin credentials not fully provided. Skipping admin user creation");
             return;
         }
         
@@ -29,7 +29,7 @@ public class UserSeeder
 
             if (adminRole == null)
             {
-                logger.Error("Admin role does not exist in database");
+                logger.LogError("Admin role does not exist in database");
                 return;
             }
             
@@ -45,11 +45,11 @@ public class UserSeeder
             await context.Users.AddAsync(defaultAdmin);
             await context.SaveChangesAsync();
             
-            logger.Information("Default admin user created with email: {AdminEmail}", adminEmail);
+            logger.LogInformation("Default admin user created with email: {AdminEmail}", adminEmail);
         }
         else
         {
-            logger.Information("Admin user already exists. Skipping creation");
+            logger.LogInformation("Admin user already exists. Skipping creation");
         }
     }
 }
