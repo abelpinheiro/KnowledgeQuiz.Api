@@ -23,7 +23,7 @@ jobs:
       
       # Restore dependencies
       - name: Restore dependencies
-        run: dotnet restore KnowledgeQuiz.Api.Sln
+        run: dotnet restore KnowledgeQuiz.Api.sln
         
       # Build the project in release mode
       - name: Build
@@ -63,7 +63,10 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 9.0.x
-        
+          
+      - name: Set test connection string
+        run: echo "ConnectionStrings__Default=Host=localhost;Port=5432;Database=quizdb;Username=quizuser;Password=quizpass" >> $GITHUB_ENV      
+      
       # Run tests
       - name: Run tests
         run: dotnet test KnowledgeQuiz.Api.sln --no-build --verbosity normal
