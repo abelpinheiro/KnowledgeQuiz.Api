@@ -5,9 +5,6 @@ WORKDIR /App
 # Copy project files and restore as distinct layers 
 # This is improves build performance as restore will only be called if dependencies changed on the csproj. If not, use previous layer from cache.
 COPY *.sln ./
-COPY src/*/*.csproj ./src/
-COPY tests/*/*.csproj ./tests/
-
 COPY src/KnowledgeQuiz.Api.Domain/*.csproj ./src/KnowledgeQuiz.Api.Domain/
 COPY src/KnowledgeQuiz.Api.Infrastructure/*.csproj ./src/KnowledgeQuiz.Api.Infrastructure/
 COPY src/KnowledgeQuiz.Api.Application/*.csproj ./src/KnowledgeQuiz.Api.Application/
