@@ -17,7 +17,7 @@ public static class HealthChecksConfigurator
             opt.SetApiMaxActiveRequests(1); // Api requests concurrency
             opt.AddHealthCheckEndpoint("KnowledgeQuiz API Health", "/api/health");
         })
-        .AddPostgreSqlStorage(configuration.GetConnectionString("Default"));
+        .AddInMemoryStorage();
         
         return services;
     }
