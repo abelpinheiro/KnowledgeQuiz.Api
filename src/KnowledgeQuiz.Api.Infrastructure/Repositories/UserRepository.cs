@@ -8,6 +8,7 @@ using KnowledgeQuiz.Api.Domain.Enums;
 using KnowledgeQuiz.Api.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 
 namespace KnowledgeQuiz.Api.Infrastructure.Repositories;
@@ -19,11 +20,14 @@ public class UserRepository : IUserRepository
 {
     private readonly AppDbContext _context;
     private readonly IConfiguration _configuration;
+    private readonly ILogger<UserRepository> _logger;
 
-    public UserRepository(AppDbContext context, IConfiguration configuration)
+
+    public UserRepository(AppDbContext context, IConfiguration configuration, ILogger<UserRepository> logger)
     {
         _context = context;
         _configuration = configuration;
+        _logger = logger;
     }
 
     /// <summary>
@@ -34,12 +38,23 @@ public class UserRepository : IUserRepository
     /// <returns></returns>
     public async Task<RegisterUserResponse> RegisterUserAsync(RegisterUserRequest registerUserRequest, string userRole)
     {
+        _logger.LogInformation("Attempting to register user with email: {Email} and role: {Role}", registerUserRequest.Email, userRole);
         var user = await FindUserByEmail(registerUserRequest.Email);
         if (user != null)
+        {
+            _logger.LogWarning("Registration failed. User with email {Email} already exists",
+                registerUserRequest.Email);
             return new RegisterUserResponse(false, RegisterFailureReason.UserAlreadyExists);
+        }
 
         var role = await _context.Roles.FirstOrDefaultAsync(x => x.Name.ToLower() == userRole.ToLower());
-
+        
+        if (role == null)
+        {
+            _logger.LogWarning("Registration failed. Role '{Role}' does not exist", userRole);
+            return new RegisterUserResponse(false, RegisterFailureReason.InvalidRole);
+        }
+        
         await _context.Users.AddAsync(new User()
         {
             Name = registerUserRequest.Name,
@@ -51,6 +66,7 @@ public class UserRepository : IUserRepository
         });
         
         await _context.SaveChangesAsync();
+        _logger.LogInformation("User with email {Email} successfully registered.", registerUserRequest.Email);
         return new RegisterUserResponse(true);
     }
 
@@ -61,15 +77,24 @@ public class UserRepository : IUserRepository
     /// <returns></returns>
     public async Task<LoginResponse> LoginUserAsync(LoginRequest loginRequest)
     {
+        _logger.LogInformation("Login attempt for email: {Email}", loginRequest.Email);
         var user = await FindUserByEmail(loginRequest.Email);
         if (user == null)
+        {
+            _logger.LogWarning("Login failed. No user found with email: {Email}", loginRequest.Email);
             return new LoginResponse(false, null, LoginFailureReason.InvalidCredentials);
-        
-        bool checkPassword = BCrypt.Net.BCrypt.Verify(loginRequest.Password, user.Password);
-        if (!checkPassword)
+        }
+
+        bool passwordValid = BCrypt.Net.BCrypt.Verify(loginRequest.Password, user.Password);
+        if (!passwordValid)
+        {            
+            _logger.LogWarning("Login failed for email: {Email}. Invalid password.", loginRequest.Email);
             return new LoginResponse(false, null, LoginFailureReason.InvalidCredentials);
-        
-        return new LoginResponse(true, GenerateJwtToken(user));
+        }
+
+        var token = GenerateJwtToken(user);
+        _logger.LogInformation("Login successful for email: {Email}", loginRequest.Email);
+        return new LoginResponse(true, token);
     }
 
     /// <summary>
@@ -106,12 +131,15 @@ public class UserRepository : IUserRepository
             expires: DateTime.Now.AddMinutes(30),
             signingCredentials: credentials
             );
-
+        
+        _logger.LogInformation("JWT token generated for userId: {UserId}, email: {Email}", user.Id, user.Email);
+        
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
     
     public async Task<List<UserResponse>> GetUsersAsync()
     {
+        _logger.LogInformation("Fetching all users from database");
         var users = await _context.Users.Include(user => user.Role).ToListAsync();
         var result = new List<UserResponse>();
         foreach (var user in users)
@@ -127,22 +155,34 @@ public class UserRepository : IUserRepository
                 Role = user.Role!.Name
             });
         }
-
+        
+        _logger.LogInformation("Retrieved {Count} users from database", result.Count);
         return result;
     }
 
     public async Task<RegisterUserResponse> AssignRoleToUserAsync(int userId, AssignRoleRequest assignRoleRequest)
     {
+        _logger.LogInformation("Assigning role '{Role}' to userId: {UserId}", assignRoleRequest.Role, userId);
         var user = await _context.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.Id == userId);
-        if (user == null) return new RegisterUserResponse(false, RegisterFailureReason.UserNotFound);
+        if (user == null)
+        {
+            _logger.LogWarning("User with id {UserId} not found", userId);
+            return new RegisterUserResponse(false, RegisterFailureReason.UserNotFound);
+        }
         
         var role = await _context.Roles.FirstOrDefaultAsync(r => r.Name.ToLower() == assignRoleRequest.Role.ToLower());
-        if (role == null) return new RegisterUserResponse(false, RegisterFailureReason.InvalidRole);
+        if (role == null)
+        {
+            _logger.LogWarning("Role '{Role}' not found in database", assignRoleRequest.Role);
+            return new RegisterUserResponse(false, RegisterFailureReason.InvalidRole);
+        }
         
         user.RoleId = role.Id;
         user.Role = role;
         
         await _context.SaveChangesAsync();
+        
+        _logger.LogInformation("Role '{Role}' successfully assigned to userId: {UserId}", assignRoleRequest.Role, userId);
         return new RegisterUserResponse(true);
     }
 }

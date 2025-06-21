@@ -1,10 +1,9 @@
-using HealthChecks.UI.Configuration;
 using KnowledgeQuiz.Api.Infrastructure.DependencyInjection;
 using KnowledgeQuiz.Api.Infrastructure.Observability;
 using KnowledgeQuiz.Api.Infrastructure.Observability.Logging;
 using KnowledgeQuiz.Api.Infrastructure.Seeding;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Scalar.AspNetCore;
+using ILogger = Serilog.ILogger;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,13 +19,18 @@ builder.Services.InfrastructureServices(builder.Configuration);
 
 var app = builder.Build();
 
+// Logger instance
+var logger = app.Services.GetRequiredService<ILogger>();
+
+logger.Information("Application is starting...");
+
 app.UseExceptionHandler();
+await app.SeedAsync(logger);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    Console.WriteLine("Running in Development Environment");
-    await app.SeedAsync();
+    logger.Information("Running in Development Environment");
     app.MapOpenApi();
     app.MapScalarApiReference();
 }

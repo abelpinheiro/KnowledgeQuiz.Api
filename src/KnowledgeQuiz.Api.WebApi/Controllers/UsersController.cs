@@ -14,10 +14,13 @@ namespace KnowledgeQuiz.Api.WebApi.Controllers;
 public class UsersController : ControllerBase
 {
     private readonly IUserRepository _repository;
+    private readonly ILogger<UsersController> _logger;
 
-    public UsersController(IUserRepository repository)
+
+    public UsersController(IUserRepository repository, ILogger<UsersController> logger)
     {
         _repository = repository;
+        _logger = logger;
     }
     
     //TODO endpoints for changing the password, changing the email, integration with email, delete user, get endpoint with filters and pagination
@@ -30,8 +33,11 @@ public class UsersController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<ApiResponse<string>>> GetUsersAsync()
     {
+        _logger.LogInformation("GET /api/users - Retrieving all users");
         var result = await _repository.GetUsersAsync();
         
+        _logger.LogInformation("GET /api/users - Retrieved {Count} users", result.Count);
+
         return Ok(ApiResponse<List<UserResponse>>.SuccessResponse(result, "Users successfully retrieved."));
     }
 
@@ -43,11 +49,13 @@ public class UsersController : ControllerBase
     [Authorize(Roles = "admin")]
     [HttpPost]
     public async Task<ActionResult<ApiResponse<string>>> CreateUserWithRoleAsync(RegisterUserWithRoleRequest request)
-    {
+    {        
+        _logger.LogInformation("POST /api/users - Attempting to create user with email: {Email} and role: {Role}", request.Email, request.Role);
         var result = await _repository.RegisterUserAsync(request, request.Role);
 
         if (!result.Success)
         {
+            _logger.LogWarning("POST /api/users - Failed to create user with email: {Email}. Reason: {Reason}", request.Email, result.FailureReason);
             var message = result.FailureReason switch
             {
                 RegisterFailureReason.UserAlreadyExists => "An account with this email already exists.",
@@ -58,6 +66,7 @@ public class UsersController : ControllerBase
             return BadRequest(ApiResponse<string>.Fail(message));
         }
         
+        _logger.LogInformation("POST /api/users - Successfully created user with email: {Email}", request.Email);
         return Ok(ApiResponse<string>.SuccessResponse(null!, "Registration successful."));
     }
     
@@ -71,16 +80,19 @@ public class UsersController : ControllerBase
     [HttpPut("{userId}/role")]
     public async Task<ActionResult<ApiResponse<string>>> AssignRoleToUser(int userId, AssignRoleRequest assignRoleRequest)
     {
+        _logger.LogInformation("PUT /api/users/{UserId}/role - Assigning role: {Role} to userId: {UserId}", userId, assignRoleRequest.Role);
         var result = await _repository.AssignRoleToUserAsync(userId, assignRoleRequest);
 
         if (!result.Success)
         {
+            _logger.LogWarning("PUT /api/users/{UserId}/role - Failed to assign role: {Role} to userId: {UserId}. Reason: {Reason}", userId, assignRoleRequest.Role, result.FailureReason);
             var message = result.FailureReason switch
             {
                 RegisterFailureReason.InvalidRole => "The role provided is invalid.",
                 _ => "Registration failed."
             };
             
+            _logger.LogInformation("PUT /api/users/{UserId}/role - Successfully assigned role: {Role} to userId: {UserId}", userId, assignRoleRequest.Role);
             return BadRequest(ApiResponse<string>.Fail(message));
         }
         

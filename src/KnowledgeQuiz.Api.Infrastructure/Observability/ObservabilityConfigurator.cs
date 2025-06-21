@@ -6,13 +6,15 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Serilog;
 
 namespace KnowledgeQuiz.Api.Infrastructure.Observability;
 
 public static class ObservabilityConfigurator
 {
     public static IServiceCollection AddObservability(this IServiceCollection services, IConfiguration configuration)
-    {
+    {        
+        Log.Information("Starting observability configuration");
         services
             .ConfigureHealthChecks(configuration)
             .ConfigureTelemetry(configuration);
@@ -22,6 +24,7 @@ public static class ObservabilityConfigurator
 
     public static void UseObservabilityEndpoints(this WebApplication app)
     {
+        Log.Information("Mapping observability endpoints");
         app.MapHealthChecks("/api/health", new HealthCheckOptions()
         {
             Predicate = _ => true,
@@ -54,5 +57,6 @@ public static class ObservabilityConfigurator
 
         // Map metrics endpoint
         app.UseOpenTelemetryPrometheusScrapingEndpoint();
+        Log.Information("Observability endpoints mapped");
     }
 }

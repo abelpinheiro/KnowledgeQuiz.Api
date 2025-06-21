@@ -25,23 +25,28 @@ public static class LoggingConfigurator
         {
             loggerConfig.WriteTo.Console();
         }
+
+        loggerConfig
+            .WriteTo.File("logs/knowledgequiz-.log", rollingInterval: RollingInterval.Day);
+        
+        if (!string.IsNullOrEmpty(elasticUri) && !string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
+        {
+            loggerConfig
+                .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri(elasticUri))
+                {
+                    AutoRegisterTemplate = true,
+                    IndexFormat = "random-{0:yyyy.MM.dd}",
+                    InlineFields = true,
+                    ModifyConnectionSettings = conn => conn.BasicAuthentication(username, password),
+                    MinimumLogEventLevel = LogEventLevel.Warning
+                });
+        }
         else
         {
-            if (!string.IsNullOrEmpty(elasticUri) && !string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
-            {
-                loggerConfig
-                    .WriteTo.File("logs/knowledgequiz-.log", rollingInterval: RollingInterval.Day)
-                    .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri(elasticUri))
-                    {
-                        AutoRegisterTemplate = true,
-                        IndexFormat = "random-{0:yyyy.MM.dd}",
-                        InlineFields = true,
-                        ModifyConnectionSettings = conn => conn.BasicAuthentication(username, password),
-                        MinimumLogEventLevel = LogEventLevel.Warning
-                    });
-            }
+            Console.WriteLine("Elasticsearch not configured. Skipping Elastic logging...");
         }
-        
+
+
         Log.Logger = loggerConfig.CreateLogger();
         builder.Host.UseSerilog();
         return builder;

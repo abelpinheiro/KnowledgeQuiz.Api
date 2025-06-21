@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Serilog;
 
 namespace KnowledgeQuiz.Api.Infrastructure.Observability.HealthChecks;
 
@@ -7,9 +8,21 @@ public static class HealthChecksConfigurator
 {
     public static IServiceCollection ConfigureHealthChecks(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddHealthChecks()
-            .AddNpgSql(configuration.GetConnectionString("Default"), name: "SQL Server");
+        Log.Information("Configuring health checks");
+        
+        var connectionString = configuration.GetConnectionString("Default");
+        if (string.IsNullOrEmpty(connectionString))
+        {
+            Log.Warning("Database connection string for Health Checks is not set");
+        }
+        else
+        {
+            Log.Information("Adding database Health Check for connection string: {ConnectionString}", connectionString);
+            services.AddHealthChecks()
+                .AddNpgSql(connectionString, name: "PostgreSQL");
+        }
 
+        Log.Information("Configuring Health Checks UI");
         services.AddHealthChecksUI(opt =>
         {
             opt.SetEvaluationTimeInSeconds(10); // Time in seconds between check
@@ -19,6 +32,8 @@ public static class HealthChecksConfigurator
         })
         .AddInMemoryStorage();
         
+        Log.Information("Health Checks configuration completed");
+
         return services;
     }
 }
