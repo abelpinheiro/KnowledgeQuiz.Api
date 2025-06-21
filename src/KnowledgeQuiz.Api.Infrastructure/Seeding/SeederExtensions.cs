@@ -1,4 +1,5 @@
 ﻿using KnowledgeQuiz.Api.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -23,6 +24,8 @@ public static class SeederExtensions
             var services = scope.ServiceProvider;
             var db = services.GetRequiredService<AppDbContext>();
             var config = services.GetRequiredService<IConfiguration>();
+
+            await db.Database.MigrateAsync();
 
             logger.LogInformation("Starting role seeding...");
             await RoleSeeder.EnsureSystemRolesExistAsync(db, logger);
