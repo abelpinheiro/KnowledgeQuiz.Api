@@ -92,7 +92,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Push image
-        run: docker push knowledgequiz-api
+        run: docker push abelpinheiro/knowledgequiz-api
 
 #
 #  # Job 3: Deploy to Docker Hub
