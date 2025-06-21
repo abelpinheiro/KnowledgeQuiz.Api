@@ -4,15 +4,22 @@ WORKDIR /App
 
 # Copy project files and restore as distinct layers 
 # This is improves build performance as restore will only be called if dependencies changed on the csproj. If not, use previous layer from cache.
-COPY ./*.sln ./
-COPY src/**/*.csproj ./src/
-COPY tests/**/*.csproj ./tests/
+COPY *.sln ./
+COPY src/*/*.csproj ./src/
+COPY tests/*/*.csproj ./tests/
+
+COPY src/KnowledgeQuiz.Api.Domain/*.csproj ./src/KnowledgeQuiz.Api.Domain/
+COPY src/KnowledgeQuiz.Api.Infrastructure/*.csproj ./src/KnowledgeQuiz.Api.Infrastructure/
+COPY src/KnowledgeQuiz.Api.Application/*.csproj ./src/KnowledgeQuiz.Api.Application/
+COPY src/KnowledgeQuiz.Api.WebApi/*.csproj ./src/KnowledgeQuiz.Api.WebApi/
+COPY tests/KnowledgeQuiz.Api.UnitTests/*.csproj ./tests/KnowledgeQuiz.Api.UnitTests/
+COPY tests/KnowledgeQuiz.Api.IntegrationTests/*.csproj ./tests/KnowledgeQuiz.Api.IntegrationTests/
+COPY tests/KnowledgeQuiz.Api.EndToEndTests/*.csproj ./tests/KnowledgeQuiz.Api.EndToEndTests/
+
 RUN dotnet restore KnowledgeQuiz.Api.sln
 
 # Copy the rest of the code
-#COPY . ./
-COPY src/ ./src/
-COPY tests/ ./tests/
+COPY . ./
 
 # Build and publish a release
 RUN dotnet publish KnowledgeQuiz.Api.WebApi/KnowledgeQuiz.Api.WebApi.csproj -c Release -o out
