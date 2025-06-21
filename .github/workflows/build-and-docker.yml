@@ -82,7 +82,7 @@ jobs:
         
       # Build docker image
       - name: Build docker image
-        run: docker build -t knowledgequiz-api -f Dockerfile .
+        run: docker build -t abelpinheiro/knowledgequiz-api -f Dockerfile .
       
       # 8. (optional) Push to docker hub or another registry
       - name: Login to Docker Hub
