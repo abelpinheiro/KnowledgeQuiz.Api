@@ -19,7 +19,7 @@ RUN dotnet restore KnowledgeQuiz.Api.sln
 COPY . ./
 
 # Build and publish a release
-RUN dotnet publish KnowledgeQuiz.Api.WebApi/KnowledgeQuiz.Api.WebApi.csproj -c Release -o out
+RUN dotnet publish src/KnowledgeQuiz.Api.WebApi/KnowledgeQuiz.Api.WebApi.csproj -c Release -o out
 
 # Stage 2 - Set up the production environment building the runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:9.0@sha256:b4bea3a52a0a77317fa93c5bbdb076623f81e3e2f201078d89914da71318b5d8
