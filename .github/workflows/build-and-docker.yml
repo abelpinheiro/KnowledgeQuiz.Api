@@ -77,6 +77,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: test
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
       # Build docker image
       - name: Build docker image
         run: docker build -t knowledgequiz-api -f Dockerfile .
