@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.Elasticsearch;
@@ -35,7 +33,7 @@ public static class LoggingConfigurator
                 .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri(elasticUri))
                 {
                     AutoRegisterTemplate = true,
-                    IndexFormat = "random-{0:yyyy.MM.dd}",
+                    IndexFormat = "knowledgequiz-api-logs-{0:yyyy.MM.dd}",
                     InlineFields = true,
                     ModifyConnectionSettings = conn => conn.BasicAuthentication(username, password),
                     MinimumLogEventLevel = LogEventLevel.Warning
