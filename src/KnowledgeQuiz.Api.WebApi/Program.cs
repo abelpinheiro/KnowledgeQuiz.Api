@@ -14,7 +14,8 @@ builder.AddLogging(builder.Configuration);
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddControllers();
 
-var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>();
+var allowedOriginsString = builder.Configuration["AllowedOrigins"];
+var allowedOrigins = allowedOriginsString?.Split(',', StringSplitOptions.RemoveEmptyEntries) ?? [];
 
 builder.Services.AddCors(options =>
 {
