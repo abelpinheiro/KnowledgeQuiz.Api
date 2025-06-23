@@ -51,7 +51,6 @@ if (app.Environment.IsDevelopment())
     logger.LogInformation("HTTPS Redirection ENABLED (Development only)");
     app.UseHttpsRedirection();
 }
-Console.WriteLine("--> passed SeedAsync");
 
 app.UseCors("AllowFrontend");
 app.UseAuthentication();
@@ -61,8 +60,10 @@ app.MapControllers();
 app.MapPrometheusScrapingEndpoint();
 
 app.UseObservabilityEndpoints();
-Console.WriteLine("--> passed UseObservabilityEndpoints");
+
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
 app.Urls.Add($"http://0.0.0.0:{port}");
 
-app.Run();
+Console.WriteLine("--> before app.Run");
+await app.RunAsync();
+Console.WriteLine("--> passed app.Run");
