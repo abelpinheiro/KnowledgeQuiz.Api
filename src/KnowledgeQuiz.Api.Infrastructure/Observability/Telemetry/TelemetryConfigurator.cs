@@ -24,6 +24,7 @@ public static class TelemetryConfigurator
                     .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(serviceName, serviceVersion))
                     .AddAspNetCoreInstrumentation()
                     .AddRuntimeInstrumentation()
+                    .AddMeter("KnowledgeQuiz.Api")
                     .AddPrometheusExporter();
                 Log.Information("OpenTelemetry Metrics configured");
             })
@@ -31,7 +32,13 @@ public static class TelemetryConfigurator
             {
                 Log.Information("Configuring OpenTelemetry Tracing");
                 tracer.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(serviceName))
-                    .AddAspNetCoreInstrumentation();
+                    .AddAspNetCoreInstrumentation()
+                    .AddHttpClientInstrumentation()
+                    .AddOtlpExporter(options =>
+                    {
+                        options.Endpoint = new Uri(configuration["OtlpUrl"] ?? "http://localhost:4317/");
+                    });
+                
                 Log.Information("OpenTelemetry configuration completed");
             });
         

@@ -1,4 +1,6 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+﻿using System.Diagnostics;
+using System.Diagnostics.Metrics;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using KnowledgeQuiz.Api.Application.Contracts;
@@ -6,6 +8,7 @@ using KnowledgeQuiz.Api.Application.DTOs;
 using KnowledgeQuiz.Api.Domain.Entities;
 using KnowledgeQuiz.Api.Domain.Enums;
 using KnowledgeQuiz.Api.Infrastructure.Data;
+using KnowledgeQuiz.Api.Infrastructure.Observability.Telemetry;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -21,7 +24,7 @@ public class UserRepository : IUserRepository
     private readonly AppDbContext _context;
     private readonly IConfiguration _configuration;
     private readonly ILogger<UserRepository> _logger;
-
+    private static readonly ActivitySource ActivitySource = new("KnowledgeQuiz.Api.UserRepository");
 
     public UserRepository(AppDbContext context, IConfiguration configuration, ILogger<UserRepository> logger)
     {
@@ -38,7 +41,10 @@ public class UserRepository : IUserRepository
     /// <returns></returns>
     public async Task<RegisterUserResponse> RegisterUserAsync(RegisterUserRequest registerUserRequest, string userRole)
     {
+        using var activity = ActivitySource.StartActivity("RegisterUserAsync");
+
         _logger.LogInformation("Attempting to register user with email: {Email} and role: {Role}", registerUserRequest.Email, userRole);
+        
         var user = await FindUserByEmail(registerUserRequest.Email);
         if (user != null)
         {
@@ -66,6 +72,7 @@ public class UserRepository : IUserRepository
         });
         
         await _context.SaveChangesAsync();
+        
         _logger.LogInformation("User with email {Email} successfully registered.", registerUserRequest.Email);
         return new RegisterUserResponse(true);
     }
@@ -77,6 +84,9 @@ public class UserRepository : IUserRepository
     /// <returns></returns>
     public async Task<LoginResponse> LoginUserAsync(LoginRequest loginRequest)
     {
+        using var activity = ActivitySource.StartActivity("LoginUserAsync");
+        activity?.SetTag("user.email", loginRequest.Email);
+        
         _logger.LogInformation("Login attempt for email: {Email}", loginRequest.Email);
         var user = await FindUserByEmail(loginRequest.Email);
         if (user == null)
@@ -104,7 +114,15 @@ public class UserRepository : IUserRepository
     /// <returns></returns>
     private async Task<User?> FindUserByEmail(string email)
     {
-        return await _context.Users.Include(x => x.Role).FirstOrDefaultAsync(u => u.Email == email);
+        AppMetrics.DbUserQueries.Add(1, new KeyValuePair<string, object>("operation", "FindUserByEmail"));
+        using var activity = ActivitySource.StartActivity("FindUserByEmail");
+        activity?.SetTag("user.email", email);
+        
+        return await MetricsHelper.TrackDurationAsync(
+            AppMetrics.OperationDurationHistogram,
+            async () => await _context.Users.Include(x => x.Role).FirstOrDefaultAsync(u => u.Email == email),
+            new KeyValuePair<string, object>("operation", "FindUserByEmail")
+        );
     }
 
     /// <summary>
@@ -114,6 +132,10 @@ public class UserRepository : IUserRepository
     /// <returns></returns>
     private string GenerateJwtToken(User user)
     {
+        using var activity = ActivitySource.StartActivity("GenerateJwtToken");
+        activity?.SetTag("user.id", user.Id);
+        activity?.SetTag("user.email", user.Email);
+        
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
         var userClaims = new[]
@@ -139,6 +161,7 @@ public class UserRepository : IUserRepository
     
     public async Task<List<UserResponse>> GetUsersAsync()
     {
+        using var activity = ActivitySource.StartActivity("GetUsersAsync");
         _logger.LogInformation("Fetching all users from database");
         var users = await _context.Users.Include(user => user.Role).ToListAsync();
         var result = new List<UserResponse>();
@@ -162,6 +185,10 @@ public class UserRepository : IUserRepository
 
     public async Task<RegisterUserResponse> AssignRoleToUserAsync(int userId, AssignRoleRequest assignRoleRequest)
     {
+        using var activity = ActivitySource.StartActivity("AssignRoleToUserAsync");
+        activity?.SetTag("user.id", userId);
+        activity?.SetTag("new.role", assignRoleRequest.Role);
+            
         _logger.LogInformation("Assigning role '{Role}' to userId: {UserId}", assignRoleRequest.Role, userId);
         var user = await _context.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.Id == userId);
         if (user == null)
@@ -180,7 +207,12 @@ public class UserRepository : IUserRepository
         user.RoleId = role.Id;
         user.Role = role;
         
-        await _context.SaveChangesAsync();
+        await MetricsHelper.TrackDurationAsync(
+            AppMetrics.OperationDurationHistogram,
+            async () => await _context.SaveChangesAsync(),
+            new KeyValuePair<string, object>("operation", "SaveChangesAsync"),
+            new KeyValuePair<string, object>("action", "AssignRole")
+        );
         
         _logger.LogInformation("Role '{Role}' successfully assigned to userId: {UserId}", assignRoleRequest.Role, userId);
         return new RegisterUserResponse(true);
