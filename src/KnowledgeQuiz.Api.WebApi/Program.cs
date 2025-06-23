@@ -30,6 +30,9 @@ builder.Services.AddCors(options =>
 builder.Services.AddOpenApi();
 builder.Services.InfrastructureServices(builder.Configuration);
 
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+
 var app = builder.Build();
 
 // Logger instance
@@ -60,10 +63,4 @@ app.MapControllers();
 app.MapPrometheusScrapingEndpoint();
 
 app.UseObservabilityEndpoints();
-
-var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-app.Urls.Add($"http://0.0.0.0:{port}");
-
-Console.WriteLine("--> before app.Run");
 await app.RunAsync();
-Console.WriteLine("--> passed app.Run");
