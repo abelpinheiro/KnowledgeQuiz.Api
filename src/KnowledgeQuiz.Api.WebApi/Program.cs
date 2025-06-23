@@ -47,9 +47,10 @@ if (app.Environment.IsDevelopment())
     logger.LogInformation("Running in Development Environment");
     app.MapOpenApi();
     app.MapScalarApiReference();
+    
+    logger.LogInformation("HTTPS Redirection ENABLED (Development only)");
+    app.UseHttpsRedirection();
 }
-
-app.UseHttpsRedirection();
 
 app.UseCors("AllowFrontend");
 app.UseAuthentication();
@@ -59,4 +60,8 @@ app.MapControllers();
 app.MapPrometheusScrapingEndpoint();
 
 app.UseObservabilityEndpoints();
+
+var port = Environment.GetEnvironmentVariable("Port") ?? "8080";
+app.Urls.Add($"http://*:{port}");
+
 app.Run();
