@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 
@@ -15,13 +16,13 @@ namespace KnowledgeQuiz.Api.Infrastructure.DependencyInjection;
 
 public static class ServiceContainer
 {
-    public static IServiceCollection InfrastructureServices(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection InfrastructureServices(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
     {
         Log.Information("Starting InfrastructureServices configuration");
         services
             .AddJwtAuthentication(configuration)
             .AddDatabase(configuration)
-            .AddObservability(configuration)
+            .AddObservability(configuration, environment)
             .AddRepositories()
             .AddExceptionHandlers();
 

@@ -1,12 +1,13 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Serilog;
 
 namespace KnowledgeQuiz.Api.Infrastructure.Observability.HealthChecks;
 
 public static class HealthChecksConfigurator
 {
-    public static IServiceCollection ConfigureHealthChecks(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection ConfigureHealthChecks(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
     {
         Log.Information("Configuring health checks");
         
@@ -17,18 +18,22 @@ public static class HealthChecksConfigurator
         }
         else
         {
-            Log.Information("Adding database Health Check for connection string: {ConnectionString}", connectionString);
+            Log.Information("Adding database Health Check for con   nection string: {ConnectionString}", connectionString);
             services.AddHealthChecks()
                 .AddNpgSql(connectionString, name: "PostgreSQL");
         }
 
         Log.Information("Configuring Health Checks UI");
+        var healthEndpoint = environment.IsDevelopment() 
+            ? "http://localhost:8080/api/health" 
+            : "/api/health";
+        
         services.AddHealthChecksUI(opt =>
         {
             opt.SetEvaluationTimeInSeconds(10); // Time in seconds between check
             opt.MaximumHistoryEntriesPerEndpoint(60); // Maximum history checks
             opt.SetApiMaxActiveRequests(1); // Api requests concurrency
-            opt.AddHealthCheckEndpoint("KnowledgeQuiz API Health", "/api/health");
+            opt.AddHealthCheckEndpoint("KnowledgeQuiz API Health", healthEndpoint);
         })
         .AddInMemoryStorage();
         

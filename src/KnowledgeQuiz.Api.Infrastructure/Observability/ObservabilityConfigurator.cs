@@ -3,20 +3,22 @@ using KnowledgeQuiz.Api.Infrastructure.Observability.HealthChecks;
 using KnowledgeQuiz.Api.Infrastructure.Observability.Telemetry;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Serilog;
 
 namespace KnowledgeQuiz.Api.Infrastructure.Observability;
 
 public static class ObservabilityConfigurator
 {
-    public static IServiceCollection AddObservability(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddObservability(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
     {        
         Log.Information("Starting observability configuration");
         services
-            .ConfigureHealthChecks(configuration)
+            .ConfigureHealthChecks(configuration, environment)
             .ConfigureTelemetry(configuration);
         
         return services;
