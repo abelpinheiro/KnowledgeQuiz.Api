@@ -53,7 +53,7 @@ var logger = app.Services.GetRequiredService<ILogger<Program>>();
 
 logger.LogInformation("Application is starting...");
 
-app.UseExceptionHandler();
+//app.UseExceptionHandler();
 
 await app.SeedAsync(logger);
 
