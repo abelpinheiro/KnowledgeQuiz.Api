@@ -25,7 +25,7 @@ public static class HealthChecksConfigurator
 
         Log.Information("Configuring Health Checks UI");
         var healthEndpoint = environment.IsDevelopment() 
-            ? "http://localhost:10000/api/health" 
+            ? "http://localhost:5203/api/health" 
             : "/api/health";
         
         services.AddHealthChecksUI(opt =>
