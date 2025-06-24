@@ -29,7 +29,7 @@ public class AuthController : ControllerBase
     /// <param name="loginRequest"></param>
     /// <returns></returns>
     [HttpPost("login")]
-    public async Task<ActionResult<ApiResponse<string>>> LoginAsync(LoginRequest loginRequest)
+    public async Task<ActionResult<ApiResponse<string>>> LoginAsync([FromBody] LoginRequest loginRequest)
     {
         _logger.LogInformation("Login attempt for email: {Email}", loginRequest.Email);
         AppMetrics.LoginAttempts.Add(1);
@@ -61,7 +61,7 @@ public class AuthController : ControllerBase
     /// <param name="registerUserRequest"></param>
     /// <returns></returns>
     [HttpPost("register")]
-    public async Task<ActionResult<LoginResponse>> RegisterAsync(RegisterUserRequest registerUserRequest)
+    public async Task<ActionResult<LoginResponse>> RegisterAsync([FromBody] RegisterUserRequest registerUserRequest)
     {
         _logger.LogInformation("Registration attempt for email: {Email}", registerUserRequest.Email);
         AppMetrics.RegistrationAttempts.Add(1);

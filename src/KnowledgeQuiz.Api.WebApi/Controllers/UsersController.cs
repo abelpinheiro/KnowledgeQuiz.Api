@@ -51,7 +51,7 @@ public class UsersController : ControllerBase
     /// <returns></returns>
     [Authorize(Roles = "admin")]
     [HttpPost]
-    public async Task<ActionResult<ApiResponse<string>>> CreateUserWithRoleAsync(RegisterUserWithRoleRequest request)
+    public async Task<ActionResult<ApiResponse<string>>> CreateUserWithRoleAsync([FromBody] RegisterUserWithRoleRequest request)
     {        
         _logger.LogInformation("POST /api/users - Attempting to create user with email: {Email} and role: {Role}", request.Email, request.Role);
         AppMetrics.RegistrationAttempts.Add(1);
@@ -87,7 +87,7 @@ public class UsersController : ControllerBase
     /// <returns></returns>
     [Authorize(Roles = "admin")]
     [HttpPut("{userId}/role")]
-    public async Task<ActionResult<ApiResponse<string>>> AssignRoleToUser(int userId, AssignRoleRequest assignRoleRequest)
+    public async Task<ActionResult<ApiResponse<string>>> AssignRoleToUser(int userId, [FromBody] AssignRoleRequest assignRoleRequest)
     {
         _logger.LogInformation("PUT /api/users/{UserId}/role - Assigning role: {Role} to userId: {UserId}", userId, assignRoleRequest.Role);
         AppMetrics.RoleAssignments.Add(1);
