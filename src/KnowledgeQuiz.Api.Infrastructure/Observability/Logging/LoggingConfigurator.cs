@@ -36,7 +36,7 @@ public static class LoggingConfigurator
                     IndexFormat = "knowledgequiz-api-logs-{0:yyyy.MM.dd}",
                     InlineFields = true,
                     ModifyConnectionSettings = conn => conn.BasicAuthentication(username, password),
-                    MinimumLogEventLevel = LogEventLevel.Warning
+                    MinimumLogEventLevel = LogEventLevel.Information
                 });
         }
         else

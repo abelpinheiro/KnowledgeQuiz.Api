@@ -1,3 +1,4 @@
+using System.Text.Json;
 using KnowledgeQuiz.Api.Infrastructure.DependencyInjection;
 using KnowledgeQuiz.Api.Infrastructure.Observability;
 using KnowledgeQuiz.Api.Infrastructure.Observability.Logging;
@@ -12,7 +13,11 @@ builder.AddLogging(builder.Configuration);
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+    });;
 
 var allowedOriginsString = builder.Configuration["AllowedOrigins"];
 var allowedOrigins = allowedOriginsString?.Split(',', StringSplitOptions.RemoveEmptyEntries) ?? [];

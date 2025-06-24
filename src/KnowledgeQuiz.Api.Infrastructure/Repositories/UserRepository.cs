@@ -84,6 +84,8 @@ public class UserRepository : IUserRepository
     /// <returns></returns>
     public async Task<LoginResponse> LoginUserAsync(LoginRequest loginRequest)
     {
+        _logger.LogInformation("Payload recebido: Email={Email}, Password={Password}", loginRequest.Email, loginRequest.Password);
+
         using var activity = ActivitySource.StartActivity("LoginUserAsync");
         activity?.SetTag("user.email", loginRequest.Email);
         
