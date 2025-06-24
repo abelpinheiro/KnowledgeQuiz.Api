@@ -26,9 +26,17 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins(allowedOrigins!) // ou a URL do seu frontend
-            .AllowAnyHeader()
-            .AllowAnyMethod();
+        if (allowedOrigins.Length > 0)
+        {
+            policy.WithOrigins(allowedOrigins)
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        }
+        else
+        {
+            // Em produção, logue ou lance um erro pra alertar
+            Console.WriteLine("⚠️ AllowedOrigins está vazio! Corrija nas variáveis de ambiente.");
+        }
     });
 });
 
