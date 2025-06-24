@@ -68,4 +68,8 @@ app.MapControllers();
 app.MapPrometheusScrapingEndpoint();
 
 app.UseObservabilityEndpoints();
+
+app.MapFallback(() => Results.NotFound("Endpoint not found."));
+app.MapGet("/", () => "API Online");
+
 await app.RunAsync();
