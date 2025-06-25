@@ -34,8 +34,7 @@ builder.Services.AddCors(options =>
         }
         else
         {
-            // Em produção, logue ou lance um erro pra alertar
-            Console.WriteLine("⚠️ AllowedOrigins está vazio! Corrija nas variáveis de ambiente.");
+            Console.WriteLine("AllowedOrigins is empty! You need to add at least one origin");
         }
     });
 });
@@ -53,7 +52,7 @@ var logger = app.Services.GetRequiredService<ILogger<Program>>();
 
 logger.LogInformation("Application is starting...");
 
-//app.UseExceptionHandler();
+app.UseExceptionHandler();
 
 await app.SeedAsync(logger);
 
