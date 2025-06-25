@@ -18,7 +18,7 @@ public static class HealthChecksConfigurator
         }
         else
         {
-            Log.Information("Adding database Health Check for con   nection string: {ConnectionString}", connectionString);
+            Log.Information("Adding database Health Check");
             services.AddHealthChecks()
                 .AddNpgSql(connectionString, name: "PostgreSQL");
         }
