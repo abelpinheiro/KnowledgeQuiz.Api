@@ -1,4 +1,7 @@
-﻿name: Build, Test, Dockerize and Deploy .NET App
+﻿# Workflow name
+name: Build, Test, Dockerize and Deploy .NET App
+
+# Trigger:
 on:
   push:
     branches: [ master ]
@@ -20,7 +23,16 @@ jobs:
         uses: actions/setup-dotnet@v4
         with: 
           dotnet-version: 9.0.x
-      
+
+      - name: NuGet packages caching
+        uses: actions/cache@v4
+        with:
+            path: ~/.nuget/packages
+            # A chave de cache muda se o arquivo de dependências for alterado
+            key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+            restore-keys: |
+              ${{ runner.os }}-nuget-
+              
       # Restore dependencies
       - name: Restore dependencies
         run: dotnet restore KnowledgeQuiz.Api.sln
@@ -69,9 +81,63 @@ jobs:
       
       # Run tests
       - name: Run tests
-        run: dotnet test KnowledgeQuiz.Api.sln --no-build --verbosity normal
+        run: dotnet test KnowledgeQuiz.Api.sln --no-build --configuration Release --verbosity normal --logger trx --collect:"XPlat Code Coverage"
         continue-on-error: true # Remove this when we actually have tests
-  
+        
+      # Combine all of the reports into a single one
+      - name: Combine Coverage Reports
+        uses: danielpalme/ReportGenerator-GitHub-Action@5.2.4
+        with:
+          reports: "**/*.cobertura.xml"
+          targetdir: "${{ github.workspace }}"
+          reporttypes: "Cobertura" # The output formats and scope (separated by semicolon) Values: Badges, Clover, Cobertura, CsvSummary, Html, Html_Dark, Html_Light, Html_BlueRed, HtmlChart, HtmlInline, HtmlInline_AzurePipelines, HtmlInline_AzurePipelines_Dark, HtmlInline_AzurePipelines_Light, HtmlSummary, JsonSummary, Latex, LatexSummary, lcov, MarkdownSummary, MarkdownSummaryGithub, MarkdownDeltaSummary, MHtml, PngChart, SonarQube, TeamCitySummary, TextSummary, TextDeltaSummary, Xml, XmlSummary
+          verbosity: "Info"
+          title: "Knowledge Quiz API Code Coverage"
+          tag: "${{ github.run_number }}_${{ github.run_id }}"
+          toolpath: "reportgeneratortool"
+          
+      # Upload report to build artifact
+      - name: Upload Combined Coverage XML
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: ${{ github.workspace }}/Cobertura.xml
+          retention-days: 5
+      
+      - name: Publish Code Coverage Report
+        uses: irongut/CodeCoverageSummary@v1.3.0
+        with:
+          filename: "Cobertura.xml"
+          badge: true
+          fail_below_min: false # when we have a nice quantity we can change to true
+          format: markdown
+          hide_branch_rate: false
+          hide_complexity: false
+          indicators: true
+          output: both
+          thresholds: '10 30'
+          
+      - name: Add Coverage PR Comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        if: github.event_name == 'pull_request'
+        with:
+          recreate: true
+          path: code-coverage-results.md
+
+      - name: Upload Test Result Files
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: ${{ github.workspace }}/**/TestResults/**/*
+          retention-days: 5
+
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2.16.1
+        if: always()
+        with:
+          trx_files: "${{ github.workspace }}/**/*.trx"
+
+
   # Deploy the app
   deploy:
     runs-on: ubuntu-latest
