@@ -50,6 +50,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     services:
+      # Postgres configuration
       postgres:
         image: postgres:15
         env:
@@ -60,6 +61,7 @@ jobs:
           - 5432:5432
         options: --health-cmd="pg_isready" --health-interval=10s --health-timeout=5s --health-retries=5
       
+      # Elasticsearch configuration
       elasticsearch:
         image: docker.elastic.co/elasticsearch/elasticsearch:8.13.0
         env:
@@ -104,6 +106,7 @@ jobs:
           path: ${{ github.workspace }}/Cobertura.xml
           retention-days: 5
       
+      # Generate coverage report
       - name: Publish Code Coverage Report
         uses: irongut/CodeCoverageSummary@v1.3.0
         with:
@@ -116,7 +119,8 @@ jobs:
           indicators: true
           output: both
           thresholds: '10 30'
-          
+      
+      # Add coverage report comment to PR
       - name: Add Coverage PR Comment
         uses: marocchino/sticky-pull-request-comment@v2
         if: github.event_name == 'pull_request'
@@ -131,14 +135,14 @@ jobs:
           path: ${{ github.workspace }}/**/TestResults/**/*
           retention-days: 5
 
+      # Generate test results
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2.16.1
         if: always()
         with:
           trx_files: "${{ github.workspace }}/**/*.trx"
 
-
-  # Deploy the app
+  # Job 3: Deploy the app
   deploy:
     runs-on: ubuntu-latest
     needs: test
@@ -150,37 +154,13 @@ jobs:
       - name: Build docker image
         run: docker build -t abelpinheiro/knowledgequiz-api -f Dockerfile .
       
-      # 8. (optional) Push to docker hub or another registry
+      # Push to docker hub or another registry
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-
+      
+      # Push the image to registry
       - name: Push image
         run: docker push abelpinheiro/knowledgequiz-api
-
-#
-#  # Job 3: Deploy to Docker Hub
-#  deploy:
-#    runs-on: ubuntu-latest
-#    needs: test  # Só roda depois que os testes passarem
-#    steps:
-#      - name: Login to Docker Hub
-#        uses: docker/login-action@v3
-#        with:
-#          username: ${{ secrets.DOCKERHUB_USERNAME }}
-#          password: ${{ secrets.DOCKERHUB_TOKEN }}
-#      - name: Build Docker image
-#        run: docker build -t yourusername/knowledgequiz-api:latest .
-#      - name: Push Docker image
-#        run: docker push yourusername/knowledgequiz-api:latest
-  
-#  3. Sugestões e Melhorias
-#Melhoria na organização do Dockerfile: Para maior controle e melhores práticas de Docker, pode ser interessante usar multi-stage builds para reduzir o tamanho da imagem e otimizar o processo de criação. Você pode fazer isso separando as etapas de build e runtime em diferentes estágios no Dockerfile.
-#
-#Testes de unidade no pipeline: Quando você começar a escrever os testes, sugiro garantir que os testes de unidade estejam integrados ao CI/CD. Isso impede que código com falhas passe para a produção.
-#
-#Ambiente de deploy: Para completar o deploy, você pode adicionar uma etapa de deploy automático para um ambiente de staging ou produção. Isso depende da sua infraestrutura (se você usa algo como AWS, Azure, ou Google Cloud, por exemplo). Caso contrário, o fluxo de build e push da imagem para o Docker Hub já pode ser suficiente para o momento.
-#
-#GitHub Secrets: Certifique-se de que você está armazenando suas credenciais de Docker Hub ou qualquer outro serviço em Secrets no GitHub, como você já está fazendo. Isso é uma boa prática de segurança.
